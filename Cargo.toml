@@ -1,0 +1,9 @@
+[package]
+name = "translate"
+version = "0.1.0"
+authors = ["David Alber <alber.david@gmail.com>"]
+
+[dependencies]
+lazy_static = "1.2.0"
+rand = "0.5.5"
+toml = "0.4.8"
