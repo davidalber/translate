@@ -78,7 +78,7 @@ fn translate_word(word: &str) -> String {
     case.apply(get_pirate_translation(&word.to_lowercase())) + trailing_punctucation
 }
 
-fn translate(text: &str) -> String {
+pub fn translate(text: &str) -> String {
     let mut translated: Vec<String> = Vec::new();
     for word in text.split(" ") {
         translated.push(translate_word(word));
