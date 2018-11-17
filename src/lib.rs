@@ -18,6 +18,26 @@ lazy_static! {
     };
 }
 
+pub trait Translator {
+    fn translate_word(word: &str) -> &str;
+}
+
+pub struct Pirate { }
+
+impl Translator for Pirate {
+    fn translate_word(word: &str) -> &str {
+        match PIRATE_WORD_MAP.get::<str>(word) {
+            Some(words) => {
+                // Randomly select one of the possible words.
+                let mut rng = thread_rng();
+                let n: usize = rng.gen_range(0, words.len());
+                &words[n]
+            },
+            None => word,
+        }
+    }
+}
+
 #[derive(Debug, PartialEq)]
 enum Casing {
     Lowercase,
@@ -60,28 +80,16 @@ fn split_punctuation(word: &str) -> (&str, &str) {
     }
 }
 
-fn get_pirate_translation(word: &str) -> &str {
-    match PIRATE_WORD_MAP.get::<str>(word) {
-        Some(words) => {
-            // Randomly select one of the possible words.
-            let mut rng = thread_rng();
-            let n: usize = rng.gen_range(0, words.len());
-            &words[n]
-        },
-        None => word,
-    }
-}
-
-fn translate_word(word: &str) -> String {
+fn translate_word<T: Translator>(word: &str) -> String {
     let (word, trailing_punctucation) = split_punctuation(word);
     let case = Casing::classify(word);
-    case.apply(get_pirate_translation(&word.to_lowercase())) + trailing_punctucation
+    case.apply(T::translate_word(&word.to_lowercase())) + trailing_punctucation
 }
 
-pub fn translate(text: &str) -> String {
+pub fn translate<T: Translator>(text: &str) -> String {
     let mut translated: Vec<String> = Vec::new();
     for word in text.split(" ") {
-        translated.push(translate_word(word));
+        translated.push(translate_word::<T>(word));
     }
 
     translated.join(" ")
@@ -145,13 +153,13 @@ mod tests {
     fn test_get_pirate_translation() {
         let expected = vec!["arr", "aye", "yar", "yarr"];
         for _ in 0..100 {
-            let translated = get_pirate_translation("yes");
+            let translated = Pirate::translate_word("yes");
             assert!(expected.contains(&translated));
         }
     }
 
     #[test]
     fn test_translate() {
-        println!("{:?}", translate("You are great. Yes, you are."));
+        assert_eq!(translate::<Pirate>("You are great."), "Ye be great.");
     }
 }
