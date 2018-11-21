@@ -1,7 +1,8 @@
 extern crate translate;
 
 use std::env;
-use translate::{translate, Pirate};
+use translate::translate;
+use translate::pirate::Pirate;
 
 fn main() {
     let args: Vec<String> = env::args().collect();

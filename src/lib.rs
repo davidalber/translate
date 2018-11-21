@@ -3,39 +3,43 @@ extern crate lazy_static;
 extern crate rand;
 extern crate toml;
 
-use rand::{thread_rng, Rng};
-use std::collections::HashMap;
-use std::fs::File;
-use std::io::prelude::*;
+pub mod pirate {
+    use rand::{thread_rng, Rng};
+    use std::collections::HashMap;
+    use std::fs::File;
+    use std::io::prelude::*;
 
-lazy_static! {
-    static ref PIRATE_WORD_MAP: HashMap<String, Vec<String>> = {
-        let mut f = File::open("data/pirate.toml").expect("file not found");
-        let mut contents = String::new();
-        f.read_to_string(&mut contents).expect("something went wrong reading the file");
-        let config: HashMap<String, Vec<String>> = toml::from_str(&contents).unwrap_or(HashMap::new());
-        config
-    };
+    use Translator;
+
+    lazy_static! {
+        static ref PIRATE_WORD_MAP: HashMap<String, Vec<String>> = {
+            let mut f = File::open("data/pirate.toml").expect("file not found");
+            let mut contents = String::new();
+            f.read_to_string(&mut contents).expect("something went wrong reading the file");
+            let config: HashMap<String, Vec<String>> = toml::from_str(&contents).unwrap_or(HashMap::new());
+            config
+        };
+    }
+
+    pub struct Pirate { }
+
+    impl Translator for Pirate {
+        fn translate_word(word: &str) -> &str {
+            match PIRATE_WORD_MAP.get::<str>(word) {
+                Some(words) => {
+                    // Randomly select one of the possible words.
+                    let mut rng = thread_rng();
+                    let n: usize = rng.gen_range(0, words.len());
+                    &words[n]
+                },
+                None => word,
+            }
+        }
+    }    
 }
 
 pub trait Translator {
     fn translate_word(word: &str) -> &str;
-}
-
-pub struct Pirate { }
-
-impl Translator for Pirate {
-    fn translate_word(word: &str) -> &str {
-        match PIRATE_WORD_MAP.get::<str>(word) {
-            Some(words) => {
-                // Randomly select one of the possible words.
-                let mut rng = thread_rng();
-                let n: usize = rng.gen_range(0, words.len());
-                &words[n]
-            },
-            None => word,
-        }
-    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -97,6 +101,7 @@ pub fn translate<T: Translator>(text: &str) -> String {
 
 #[cfg(test)]
 mod tests {
+    use pirate::Pirate;
     use super::*;
 
     #[test]
